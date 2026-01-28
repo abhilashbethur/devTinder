@@ -2,6 +2,10 @@ const express = require("express");
 
 const app = express();
 
+app.get("/user/:userId/:username/", (req, res) => {
+  res.send({ msg: req.params });
+});
+
 app.use("/", (req, res) => {
   res.send("Bandya ");
 });
