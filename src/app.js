@@ -27,4 +27,11 @@ app.use("/", (req, res) => {
   res.send("Bandya ");
 });
 
+app.use("/", (err, req, res, next) => {
+  if (err) {
+    res.status(500).send("Something went wrong");
+  }
+});
+// always use error handler at last using "/" wildcard
+
 app.listen(3000, () => console.log("Server started on port 3000"));
