@@ -19,6 +19,50 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await User.find({});
+    if (users.length) res.send(users);
+    else res.status(400).send("Unsuccessful query");
+  } catch (err) {
+    res.status(400).send("Unsuccessful query");
+  }
+});
+
+app.get("/user", async (req, res) => {
+  const userEmail = req.body.emailId;
+  try {
+    console.log(userEmail);
+    const users = await User.find({ emailId: userEmail });
+    console.log(users);
+    if (users.length) res.send(users);
+    else res.status(400).send("Unsuccessful query");
+  } catch (err) {
+    res.status(400).send("Unsuccessful query");
+  }
+});
+
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    await User.findByIdAndDelete(userId);
+    res.send("User deleted successfully");
+  } catch (error) {
+    res.send(error);
+  }
+});
+
+app.patch("/user", async (req, res) => {
+  const userId = req.body.userId;
+  const data = req.body;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, data);
+    res.send(updatedUser);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 connectDB()
   .then(() => {
     console.log("DB connected");
