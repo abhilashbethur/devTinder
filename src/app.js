@@ -53,7 +53,7 @@ app.delete("/user", async (req, res) => {
 app.patch("/user", async (req, res) => {
   const userId = req.params.userId;
   const data = req.body;
-  const ALLOWED_UPDATES = ["password", "age", "skills"];
+  const ALLOWED_UPDATES = ["password", "age", "skills", "emailId"];
   try {
     const isAllowed = Object.keys(data).every((k) =>
       ALLOWED_UPDATES.includes(k),
@@ -63,8 +63,10 @@ app.patch("/user", async (req, res) => {
     if (!isAllowed) {
       throw new Error("Other fields are not allowed");
     }
-    console.log("here");
-    const updatedUser = await User.findByIdAndUpdate(userId, data);
+    const updatedUser = await User.findByIdAndUpdate(userId, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
     res.send(updatedUser);
   } catch (err) {
     res.status(400).send(err.message);
