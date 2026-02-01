@@ -8,14 +8,12 @@ const app = express();
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  console.log(req.body);
   const user = new User(req.body);
-
   try {
     await user.save();
     res.send("User saved successfully");
   } catch (err) {
-    res.status(400).send("error: ", err);
+    res.status(400).send(err);
   }
 });
 
