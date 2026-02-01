@@ -51,13 +51,23 @@ app.delete("/user", async (req, res) => {
 });
 
 app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
+  const userId = req.params.userId;
   const data = req.body;
+  const ALLOWED_UPDATES = ["password", "age", "skills"];
   try {
+    const isAllowed = Object.keys(data).every((k) =>
+      ALLOWED_UPDATES.includes(k),
+    );
+    if (data?.skills?.length > 10)
+      throw new Error("Skills cannot be more than 10");
+    if (!isAllowed) {
+      throw new Error("Other fields are not allowed");
+    }
+    console.log("here");
     const updatedUser = await User.findByIdAndUpdate(userId, data);
     res.send(updatedUser);
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    res.status(400).send(err.message);
   }
 });
 
