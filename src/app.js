@@ -2,18 +2,44 @@ const express = require("express");
 const { adminAuth } = require("./middlewares/auth");
 const { connectDB } = require("./config/database");
 const { User } = require("./models/user");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const app = express();
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
+  const { firstName, lastName, emailId, gender, age, password } = req.body;
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const user = new User({
+    firstName,
+    lastName,
+    emailId,
+    gender,
+    age,
+    password: passwordHash,
+  });
   try {
     await user.save();
     res.send("User saved successfully");
   } catch (err) {
     res.status(400).send(err);
+  }
+});
+
+app.post("/login", async (req, res) => {
+  const { emailId, password } = req.body;
+  try {
+    if (!validator.isEmail(emailId)) throw new Error("Email ID not valid");
+    const user = await User.findOne({ emailId });
+    if (!user) throw new Error("Email not found. Use a valid email.");
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) res.send("User logged in successfully");
+    else throw new Error("Wrong password");
+  } catch (error) {
+    res.status(400).send(error.message);
   }
 });
 
