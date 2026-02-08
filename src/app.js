@@ -4,10 +4,13 @@ const { connectDB } = require("./config/database");
 const { User } = require("./models/user");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
   const { firstName, lastName, emailId, gender, age, password } = req.body;
@@ -36,8 +39,11 @@ app.post("/login", async (req, res) => {
     const user = await User.findOne({ emailId });
     if (!user) throw new Error("Email not found. Use a valid email.");
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (isPasswordValid) res.send("User logged in successfully");
-    else throw new Error("Wrong password");
+    if (isPasswordValid) {
+      const token = jwt.sign({ _id: user._id }, "balleballe");
+      res.cookie("token", token);
+      res.send("User logged in successfully");
+    } else throw new Error("Wrong password");
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -54,15 +60,17 @@ app.get("/feed", async (req, res) => {
 });
 
 app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailId;
   try {
-    console.log(userEmail);
-    const users = await User.find({ emailId: userEmail });
-    console.log(users);
-    if (users.length) res.send(users);
-    else res.status(400).send("Unsuccessful query");
+    const { token } = req.cookies;
+    if (!token) throw new Error("Token not found");
+
+    const { _id } = await jwt.verify(token, "balleballe");
+    const user = await User.findOne({ _id });
+    if (!user) throw new Error("User not found");
+
+    res.send(user);
   } catch (err) {
-    res.status(400).send("Unsuccessful query");
+    res.status(400).send(err.message);
   }
 });
 
